@@ -12,8 +12,6 @@
       color: white;
       display: flex;
       gap: 20px;
-
-      /* Запрет выделения на уровне body */
       user-select: none;
       -webkit-user-select: none;
       -moz-user-select: none;
@@ -29,8 +27,6 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.5);
       position: relative;
       transition: filter 0.7s ease, opacity 0.7s ease;
-
-      /* Запрет выделения */
       user-select: none;
       -webkit-user-select: none;
       -moz-user-select: none;
@@ -54,12 +50,7 @@
       white-space: pre-wrap;
       word-break: break-word;
       font-family: 'Consolas', monospace;
-
-      /* Запрет выделения и кликов */
       user-select: none;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
       pointer-events: none;
     }
 
@@ -74,7 +65,7 @@
       border-radius: 6px;
       border: none;
       font-size: 16px;
-      user-select: text; /* для возможности ввода текста в input */
+      user-select: text;
       pointer-events: auto;
     }
 
@@ -102,15 +93,57 @@
     .hidden {
       display: none;
     }
+
+    /* Новая плашка для ввода слова "Шар" */
+    #right-unlock-panel {
+      background: #3a3a50;
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      user-select: none;
+    }
+
+    #right-unlock-panel input {
+      width: auto;
+      max-width: 150px;
+      display: inline-block;
+      margin-right: 8px;
+      user-select: text;
+    }
+
+    /* Контейнер с кодом справа (с блюром) */
+    #right-code-container {
+      transition: filter 0.7s ease, opacity 0.7s ease;
+      user-select: none;
+      pointer-events: none;
+      filter: blur(4px) brightness(0.6);
+      opacity: 0.6;
+      border-radius: 8px;
+      background: #111;
+      padding: 15px;
+      margin-bottom: 10px;
+      min-height: 250px;
+      font-family: 'Consolas', monospace;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* После разблокировки */
+    #right-code-container.unblurred {
+      filter: none;
+      opacity: 1;
+      pointer-events: auto;
+      user-select: text;
+    }
+
   </style>
 </head>
 
-<!-- Блокируем выделение и копирование через атрибуты -->
 <body onselectstart="return false" ondragstart="return false" oncopy="return false" oncut="return false" onpaste="return false">
 
-  <!-- Левая колонка -->
+  <!-- Левая колонка (Код 2 — физика) -->
   <div class="column" id="left-column">
-    <h2>Код 1 (Платформа)</h2>
+    <h2>Код 1 (Делаем платформу)</h2>
     <div id="left-code"></div>
     <div class="controls" id="left-controls">
       <input type="text" id="left-password" placeholder="Введите пароль...">
@@ -118,118 +151,81 @@
     </div>
   </div>
 
-  <!-- Правая колонка -->
-  <div class="column blurred" id="right-column">
-    <h2>Код 2 (Физика движения)</h2>
-    <div id="right-code"></div>
-    <div class="controls" id="right-controls">
+  <!-- Правая колонка (Код 1 — платформа) -->
+  <div class="column" id="right-column">
+    <h2>Код 2 (Настраиваем шар)</h2>
+    
+    <!-- Плашка с вводом "Шар", по умолчанию скрыта -->
+    <div id="right-unlock-panel" class="hidden">
+      Введите слово для разблокировки кода:
+      <input type="text" id="unlock-word" placeholder="Введите слово" autocomplete="off" />
+      <button id="unlock-button" disabled>Разблокировать</button>
+    </div>
+
+    <div id="right-code-container">
+      <pre id="right-code"></pre>
+    </div>
+
+    <div class="controls hidden" id="right-controls">
       <input type="text" id="right-password" placeholder="Введите пароль..." disabled>
       <button id="right-button" disabled>Открыть следующую часть</button>
     </div>
   </div>
 
   <script>
-    // ЛЕВАЯ СТОРОНА
+    // Левая колонка - Код 2 (физика движения)
     const leftSteps = [
-`public float speed = 5f;
-public Transform paddle;
-public Vector3 offset = new Vector3(0, 0.5f, 0);
-private bool launched = false;
+`[SerializeField] float speed = 10f;
+[SerializeField] float boundary = 9f;`,
+`[SerializeField] float speed = 10f;
+[SerializeField] float boundary = 9f;
 
-void Start()
-{
-}
-
-void Update()
-{        
-}`, 
-`public float speed = 5f;
-<span class="highlight">private Rigidbody2D rb;</span>
-public Transform paddle;
-public Vector3 offset = new Vector3(0, 0.5f, 0);
-private bool launched = false;
-
-void Start()
-{
-    <span class="highlight">rb = GetComponent<Rigidbody2D>();</span>
-}
+<span class="highlight">void Update()</span>
+<span class="highlight">{</span>
+    <span class="highlight">float input = Input.GetAxis("Horizontal");</span>
+    <span class="highlight">Vector3 pos = transform.position;</span>
+    <span class="highlight">pos.x += input * speed * Time.deltaTime;</span>
+<span class="highlight">}</span>`,
+`[SerializeField] float speed = 10f;
+[SerializeField] float boundary = 9f;
 
 void Update()
 {
+    float input = Input.GetAxis("Horizontal");
+    Vector3 pos = transform.position;
+    pos.x += input * speed * Time.deltaTime;
+
     
-}`, 
-`public float speed = 5f;
-private Rigidbody2D rb;
-public Transform paddle;
-public Vector3 offset = new Vector3(0, 0.5f, 0);
-private bool launched = false;
-
-void Start()
-{
-    rb = GetComponent<Rigidbody2D>();
-}
-
-void Update()
-{
-    <span class="highlight">if (!launched)</span>
+    <span class="highlight">if (pos.x < -boundary)</span>
     <span class="highlight">{</span>
-        <span class="highlight">transform.position = paddle.position + offset;</span>
+        <span class="highlight">pos.x = -boundary;</span>
     <span class="highlight">}</span>
-}`, 
-`public float speed = 5f;
-private Rigidbody2D rb;
-public Transform paddle;
-public Vector3 offset = new Vector3(0, 0.5f, 0);
-private bool launched = false;
-
-void Start()
-{
-    rb = GetComponent<Rigidbody2D>();
-}
-
-void Update()
-{
-    if (!launched)
-    {
-        transform.position = paddle.position + offset;
-        <span class="highlight">if (Input.GetKeyDown(KeyCode.Space))</span>
-        <span class="highlight">{</span>
-        <span class="highlight">}</span>
-    }
-}`, 
-`public float speed = 5f;
-private Rigidbody2D rb;
-public Transform paddle;
-public Vector3 offset = new Vector3(0, 0.5f, 0);
-private bool launched = false;
-
-void Start()
-{
-    rb = GetComponent<Rigidbody2D>();
-}
-
-void Update()
-{
-    if (!launched)
-    {
-        transform.position = paddle.position + offset;
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            <span class="highlight">launched = true;</span>
-            <span class="highlight">rb.velocity = Vector2.up * speed;</span>
-        }
-    }
+    
+    <span class="highlight">else if (pos.x > boundary)</span>
+    <span class="highlight">{</span>
+        <span class="highlight">pos.x = boundary;</span>
+    <span class="highlight">}</span>
+    <span class="highlight">transform.position = pos;</span>
+    
 }`
-];
+    ];
 
-    const leftPasswords = ["ИМШ", "Лагерь", "ИТ", "Лето", "Юнити"];
+    const leftPasswords = ["Условие", "Переменная", "Физика"];
     let leftStep = 0;
     const leftCodeBlock = document.getElementById("left-code");
     const leftInput = document.getElementById("left-password");
     const leftButton = document.getElementById("left-button");
     const leftControls = document.getElementById("left-controls");
-    const rightColumn = document.getElementById("right-column");
+
+    // Правая колонка элементы
+    const rightCodeContainer = document.getElementById("right-code-container");
+    const rightCodeBlock = document.getElementById("right-code");
     const rightInput = document.getElementById("right-password");
+    const rightButton = document.getElementById("right-button");
+    const rightControls = document.getElementById("right-controls");
+    const rightUnlockPanel = document.getElementById("right-unlock-panel");
+    const unlockInput = document.getElementById("unlock-word");
+    const unlockButton = document.getElementById("unlock-button");
 
     function updateLeftCode() {
       leftCodeBlock.innerHTML = "<pre>" + leftSteps[leftStep] + "</pre>";
@@ -237,8 +233,9 @@ void Update()
       leftButton.disabled = true;
       if (leftStep === leftSteps.length - 1) {
         leftControls.classList.add("hidden");
-        rightColumn.classList.remove("blurred");
-        rightInput.disabled = false;
+
+        // Показываем плашку для ввода "Шар" справа
+        rightUnlockPanel.classList.remove("hidden");
       }
     }
 
@@ -255,58 +252,111 @@ void Update()
 
     updateLeftCode();
 
-    // ПРАВАЯ СТОРОНА
+    // Правый код (Код 1 — платформа)
     const rightSteps = [
-`public float speed = 10f;
-public float boundary = 9f;`,
-`public float speed = 10f;
-public float boundary = 9f;
+`[SerializeField] float speed = 5f;
+[SerializeField] Transform paddle;
+[SerializeField] Vector3 offset = new Vector3(0, 0.5f, 0);
+bool launched = false;
 
-<span class="highlight">void Update()</span>
-<span class="highlight">{</span>
-    <span class="highlight">float input = Input.GetAxis("Horizontal");</span>
-    <span class="highlight">Vector3 pos = transform.position;</span>
-    <span class="highlight">pos.x += input * speed * Time.deltaTime;</span>
-<span class="highlight">}</span>`,
-`public float speed = 10f;
-public float boundary = 9f;
+void Start()
+{
+}
+
+void Update()
+{        
+}`, 
+`[SerializeField] float speed = 5f;
+<span class="highlight">Rigidbody2D rb;</span>
+public Transform paddle;
+[SerializeField] Transform paddle;
+[SerializeField] Vector3 offset = new Vector3(0, 0.5f, 0);
+bool launched = false;
+
+
+void Start()
+{
+    <span class="highlight">rb = GetComponent&lt;Rigidbody2D&gt;();</span>
+}
 
 void Update()
 {
-    float input = Input.GetAxis("Horizontal");
-    Vector3 pos = transform.position;
-    pos.x += input * speed * Time.deltaTime;
+    
+}`, 
+`[SerializeField] float speed = 5f;
+Rigidbody2D rb;
+[SerializeField] Transform paddle;
+[SerializeField] Vector3 offset = new Vector3(0, 0.5f, 0);
+bool launched = false;
 
-    <span class="highlight">// Ограничиваем движение влево</span>
-    <span class="highlight">if (pos.x < -boundary)</span>
-    <span class="highlight">{</span>
-        <span class="highlight">pos.x = -boundary;</span>
-    <span class="highlight">}</span>
-    <span class="highlight">// Ограничиваем движение вправо</span>
-    <span class="highlight">else if (pos.x > boundary)</span>
-    <span class="highlight">{</span>
-        <span class="highlight">pos.x = boundary;</span>
-    <span class="highlight">}</span>
+void Start()
+{
+    rb = GetComponent&lt;Rigidbody2D&gt;();
+}
 
-    transform.position = pos;
+void Update()
+{
+    <span class="highlight">if (!launched)</span>
+    <span class="highlight">{</span>
+        <span class="highlight">transform.position = paddle.position + offset;</span>
+    <span class="highlight">}</span>
+}`, 
+`[SerializeField] float speed = 5f;
+Rigidbody2D rb;
+[SerializeField] Transform paddle;
+[SerializeField] Vector3 offset = new Vector3(0, 0.5f, 0);
+bool launched = false;
+
+void Start()
+{
+    rb = GetComponent&lt;Rigidbody2D&gt;();
+}
+
+void Update()
+{
+    if (!launched)
+    {
+        transform.position = paddle.position + offset;
+        <span class="highlight">if (Input.GetKeyDown(KeyCode.Space))</span>
+        <span class="highlight">{</span>
+            <span class="highlight">launched = true;</span>
+            <span class="highlight">rb.velocity = Vector2.up * speed;</span>
+        <span class="highlight">}</span>
+    }
 }`
-];
+    ];
 
-    const rightPasswords = ["Условие", "Переменная", "Физика"];
+    const rightPasswords = ["ИМШ", "ИТ", "Лето"];
     let rightStep = 0;
-    const rightCodeBlock = document.getElementById("right-code");
-    const rightButton = document.getElementById("right-button");
-    const rightControls = document.getElementById("right-controls");
+
+    // Изначально скрываем контролы правой колонки
+    rightControls.classList.add("hidden");
+    rightInput.disabled = true;
 
     function updateRightCode() {
-      rightCodeBlock.innerHTML = "<pre>" + rightSteps[rightStep] + "</pre>";
+      rightCodeBlock.innerHTML = rightSteps[rightStep];
       rightInput.value = "";
       rightButton.disabled = true;
       if (rightStep === rightSteps.length - 1) {
         rightControls.classList.add("hidden");
-        // Здесь можно добавить дополнительные действия при полном раскрытии
       }
     }
+
+    unlockInput.addEventListener("input", () => {
+      unlockButton.disabled = unlockInput.value.trim() !== "Шар";
+    });
+
+    unlockButton.addEventListener("click", () => {
+      // Скрываем плашку ввода слова
+      rightUnlockPanel.classList.add("hidden");
+      // Убираем блюр с кода
+      rightCodeContainer.classList.add("unblurred");
+      // Показываем контролы для ввода пароля правого блока
+      rightControls.classList.remove("hidden");
+      rightInput.disabled = false;
+
+      updateRightCode();
+    });
 
     rightInput.addEventListener("input", () => {
       rightButton.disabled = rightInput.value.trim() !== rightPasswords[rightStep];
@@ -319,29 +369,9 @@ void Update()
       }
     });
 
-    // Правую сторону активируем только после прохождения левой
-    rightInput.disabled = true;
-    rightButton.disabled = true;
+    // Изначально показываем первый шаг кода с блюром
+    rightCodeBlock.innerHTML = rightSteps[0];
 
-    updateRightCode();
-
-    // Блокировка копирования, выделения, контекстного меню, горячих клавиш
-    document.addEventListener('contextmenu', e => e.preventDefault());
-
-    document.addEventListener('mousedown', e => {
-      if (e.detail > 1) e.preventDefault(); // Запрет выделения двойным кликом
-    });
-
-    document.addEventListener('keydown', e => {
-      // Запрет Ctrl/Cmd + C, X, A, U, S
-      if ((e.ctrlKey || e.metaKey) && ['c', 'x', 'a', 'u', 's'].includes(e.key.toLowerCase())) {
-        e.preventDefault();
-      }
-      // Запрет F12
-      if (e.key === 'F12') {
-        e.preventDefault();
-      }
-    });
   </script>
 
 </body>
